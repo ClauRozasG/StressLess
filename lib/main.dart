@@ -93,9 +93,11 @@ class _RecorderWidgetState extends State<RecorderWidget> {
   }
 }*/
 
+import 'package:app_stressless/screens/initialLoginLider.dart';
 import 'package:flutter/material.dart';
 
-import 'loginColab.dart';
+import 'screens/loginColab.dart';
+//import 'screens/initialLoginLider.dart';
 
 void main() {
   runApp(const StressLessApp());
@@ -144,7 +146,10 @@ class LoginInicio extends StatelessWidget {
                 const SizedBox(height: 40),
                 ElevatedButton(
                   onPressed: () {
-                    // Navegar a login de líder
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const initialLoginLider()),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6C3B2A), // Marrón

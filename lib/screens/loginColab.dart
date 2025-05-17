@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'verificationCode.dart';
+
 
 class LoginColaboradorPage extends StatefulWidget {
   const LoginColaboradorPage({super.key});
@@ -100,7 +102,10 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                 // Registro
                 TextButton(
                   onPressed: () {
-                    // Navegar a registro de colaborador
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const verificationCode()),
+                    );
                   },
                   child: const Text(
                     '¿Eres nuevo colaborador? Ingresa aquí',

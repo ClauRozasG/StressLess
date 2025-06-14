@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'registroColaborador.dart';
 
@@ -13,31 +15,33 @@ class _verificationCodeState extends State<verificationCode> {
   String _message = '';
   bool _isCodeCorrect = false;
 
-  // Simula el código correcto
-  final String _correctCode = '12345';
-
-  void _verifyCode() {
+  void _verifyCode() async {
     final enteredCode = _controllers.map((c) => c.text).join();
+    final url = Uri.parse("http://10.0.2.2:8000/validar-codigo/$enteredCode");
+    final response = await http.get(url);
 
-    if (enteredCode.length < 5) return;
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final nombre = data['nombre'];
+      final email = data['correo'];
+      final idLider = data['id_lider']; // puedes usarlo si lo necesitas
 
-    if (enteredCode == _correctCode) {
-      // ✅ Código correcto: ir a la siguiente pantalla
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => registroColaborador(
-            nombre: 'Claudia Rozas Gamero',  // puedes cambiar esto por variable real
-            email: 'claudia@upc.com.pe',     // lo mismo
+            nombre: nombre,
+            email: email,
           ),
         ),
       );
     } else {
       setState(() {
-        _message = 'Código incorrecto';
+        _message = 'Código inválido o ya usado';
         _isCodeCorrect = false;
       });
     }
+
   }
 
   void _resendCode() {

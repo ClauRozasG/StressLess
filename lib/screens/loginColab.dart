@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'verificationCode.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'pantallaPrueba.dart';
 
 class LoginColaboradorPage extends StatefulWidget {
   const LoginColaboradorPage({super.key});
@@ -92,9 +94,53 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  onPressed: () {
-                    // Lógica de login
+                  onPressed: () async {
+                    final email = _emailController.text.trim();
+                    final password = _passwordController.text;
+
+                    if (email.isEmpty || password.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Todos los campos son obligatorios")),
+                      );
+                      return;
+                    }
+
+                    final response = await http.post(
+                      Uri.parse('http://192.168.1.102:8000/login'),
+                      headers: {'Content-Type': 'application/json'},
+                      body: jsonEncode({
+                        'correo': email,
+                        'contrasenia': password,
+                        'rol': 'COLABORADOR',
+                      }),
+                    );
+
+                    if (response.statusCode == 200) {
+                      final data = jsonDecode(response.body);
+                      final token = data['token'];
+                      final idColaborador = data['id'];
+                      print("✅ Token recibido: $token");
+
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Sesión iniciada con éxito")),
+                      );
+
+                      // TODO: redirige a pantalla principal del colaborador
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => PantallaInicioPrueba(idColaborador: idColaborador),
+                        ),
+                      );
+
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Credenciales inválidas: ${response.statusCode}")),
+                      );
+                      print("❌ Error login: ${response.body}");
+                    }
                   },
+
                   child: const Text('Iniciar sesión'),
                 ),
                 const SizedBox(height: 20),

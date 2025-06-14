@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pantallaInicioColaborador.dart';
+import 'modeloPredict.dart';
 
 class registroColaborador extends StatefulWidget {
   final String nombre;
@@ -31,7 +32,7 @@ class _registroColaboradorState extends State<registroColaborador> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => const pantallaInicioColaborador(),
+        builder: (context) => const PruebaEstresPage(),
       ),
     );
   }

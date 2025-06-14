@@ -1,3 +1,4 @@
+import 'package:app_stressless/screens/registroLider.dart';
 import 'package:flutter/material.dart';
 
 
@@ -101,13 +102,17 @@ class _initialLoginLiderState extends State<initialLoginLider> {
                 // Registro
                 TextButton(
                   onPressed: () {
-
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const registroLider()),
+                    );
                   },
                   child: const Text(
                     '¿Eres nuevo líder? Ingresa aquí',
                     style: TextStyle(fontSize: 12),
                   ),
                 ),
+
 
                 const SizedBox(height: 10),
 

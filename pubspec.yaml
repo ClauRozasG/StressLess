@@ -19,7 +19,10 @@ dependencies:
   path_provider: ^2.1.2
   permission_handler: ^11.0.1
   pin_code_fields: ^7.4.0
-  record: ^5.0.0  # más simple y ligero que flutter_sound
+  record: ^5.0.0
+  fl_chart: ^0.64.0
+  intl: ^0.18.1
+
 
 
 dev_dependencies:

@@ -29,7 +29,7 @@ class _envioInvitacionesState extends State<envioInvitaciones> {
 
   Future<void> _cargarColaboradores() async {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/precolaboradores/${widget.correoLider}'),
+      Uri.parse('http://192.168.1.103:8000/precolaboradores/${widget.correoLider}'),
     );
 
     if (response.statusCode == 200) {
@@ -61,8 +61,8 @@ class _envioInvitacionesState extends State<envioInvitaciones> {
 
   void _enviarInvitaciones() async {
     final response = await http.post(
-      Uri.parse('http://192.168.1.102:8000/send-invitations/${widget.idLider}'),
-      headers: {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsaWRlcjFAZXhhbXBsZS5jb20iLCJyb2wiOiJMSURFUiIsImV4cCI6MTc0OTAxMzc3M30.qxn8I8eQSpTXIAbn3tZGzmEX8Oj1ecJbmtfh695Q4NA'},
+      Uri.parse('http://192.168.1.40:8000/send-invitations/${widget.idLider}'),
+      headers: {'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsaWRlcjFAZXhhbXBsZS5jb20iLCJyb2wiOiJMSURFUiIsImlkIjo1LCJleHAiOjE3NTAwOTk3MzB9.bylyI09o5obVMHlAECcmctZ_8003bxaf_0iOuBEm27s'},
     );
 
     if (response.statusCode == 200) {

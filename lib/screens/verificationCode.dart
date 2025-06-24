@@ -17,21 +17,23 @@ class _verificationCodeState extends State<verificationCode> {
 
   void _verifyCode() async {
     final enteredCode = _controllers.map((c) => c.text).join();
-    final url = Uri.parse("http://10.0.2.2:8000/validar-codigo/$enteredCode");
+    final url = Uri.parse("http://192.168.1.40:8000/validar-codigo/$enteredCode");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final nombre = data['nombre'];
       final email = data['correo'];
-      final idLider = data['id_lider']; // puedes usarlo si lo necesitas
-
+      final idLider = data['id_lider'];
+      final correoLider = data['correo_lider'];
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => registroColaborador(
             nombre: nombre,
             email: email,
+            codigo: enteredCode,
+            correoLider: correoLider,// nuevo parámetro
           ),
         ),
       );

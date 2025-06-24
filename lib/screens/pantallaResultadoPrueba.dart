@@ -1,12 +1,15 @@
 import 'package:app_stressless/screens/pantallaPrueba.dart';
 import 'package:flutter/material.dart';
+import 'loginColab.dart';
+import 'pantallaInicioColaborador.dart';
+
 
 class PantallaResultadoPrueba extends StatelessWidget {
   final bool esEstresado;
   final String fecha;
   final String archivoAudio;
   final int idColaborador;
-
+  final String nombre;
 
   const PantallaResultadoPrueba({
     super.key,
@@ -14,7 +17,9 @@ class PantallaResultadoPrueba extends StatelessWidget {
     required this.fecha,
     required this.archivoAudio,
     required this.idColaborador,
+    required this.nombre,
   });
+
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,11 @@ class PantallaResultadoPrueba extends StatelessWidget {
               leading: const Icon(Icons.logout),
               title: const Text('Cerrar sesión'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginColaboradorPage()),
+                      (Route<dynamic> route) => false,
+                );
               },
             ),
           ],
@@ -100,14 +109,20 @@ class PantallaResultadoPrueba extends StatelessWidget {
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => PantallaInicioPrueba(idColaborador: idColaborador)),
+                  MaterialPageRoute(
+                    builder: (context) => pantallaInicioColaborador(
+                      idColaborador: idColaborador,
+                      nombreColaborador: nombre,
+                    ),
+                  ),
                 );
               },
               style: _estiloBoton(),
               child: const Text('Atrás'),
             ),
+
           ],
         ),
       ),

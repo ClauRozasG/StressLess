@@ -34,7 +34,7 @@ class _registroLiderState extends State<registroLider> {
       return;
     }
 
-    final url = Uri.parse('http://10.0.2.2:8000/leaders');
+    final url = Uri.parse('http://192.168.1.40:8000/leaders');
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

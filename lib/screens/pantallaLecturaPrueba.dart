@@ -8,13 +8,17 @@ import 'dart:convert';
 
 class PantallaLecturaPrueba extends StatefulWidget {
   final int idColaborador;
+  final String nombre;
 
-  const PantallaLecturaPrueba({super.key, required this.idColaborador});
+  const PantallaLecturaPrueba({
+    super.key,
+    required this.idColaborador,
+    required this.nombre,
+  });
 
   @override
   State<PantallaLecturaPrueba> createState() => _PantallaLecturaPruebaState();
 }
-
 
 class _PantallaLecturaPruebaState extends State<PantallaLecturaPrueba> {
   bool _grabando = false;
@@ -40,12 +44,10 @@ class _PantallaLecturaPruebaState extends State<PantallaLecturaPrueba> {
 
       debugPrint('🎙️ Archivo guardado en: $path');
 
-      final uri = Uri.parse('http://192.168.1.102:8000/predecir/');
+      final uri = Uri.parse('http://192.168.1.40:8000/predecir/');
       final request = http.MultipartRequest('POST', uri);
       request.fields['id_colaborador'] = widget.idColaborador.toString();
       request.files.add(await http.MultipartFile.fromPath('audio', path!));
-
-
 
       final response = await request.send();
 
@@ -66,7 +68,8 @@ class _PantallaLecturaPruebaState extends State<PantallaLecturaPrueba> {
               esEstresado: resultado == "Estresado",
               fecha: fecha,
               archivoAudio: archivo,
-                idColaborador: widget.idColaborador,
+              idColaborador: widget.idColaborador,
+              nombre: widget.nombre,
             ),
           ),
         );

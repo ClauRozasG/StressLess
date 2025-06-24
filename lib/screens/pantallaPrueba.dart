@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'pantallaLecturaPrueba.dart';
+import 'loginColab.dart';
 
 class PantallaInicioPrueba extends StatelessWidget {
   final int idColaborador;
+  final String nombre;
+  final int idPrueba;
 
-  const PantallaInicioPrueba({super.key, required this.idColaborador});
+  const PantallaInicioPrueba({
+    super.key,
+    required this.idColaborador,
+    required this.nombre,
+    required this.idPrueba,
+  });
+
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +54,11 @@ class PantallaInicioPrueba extends StatelessWidget {
               Navigator.pop(context);
             }),
             _buildDrawerItem(context, Icons.logout, 'Cerrar sesión', () {
-              // Acción de logout
-              Navigator.pop(context);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginColaboradorPage()),
+                    (Route<dynamic> route) => false,
+              );
             }),
           ],
         ),
@@ -75,9 +87,13 @@ class PantallaInicioPrueba extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PantallaLecturaPrueba(idColaborador: idColaborador),
+                      builder: (context) => PantallaLecturaPrueba(
+                        idColaborador: idColaborador,
+                        nombre: nombre,
+                      ),
                     ),
                   );
+
                 },
 
                 style: ElevatedButton.styleFrom(

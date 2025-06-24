@@ -3,6 +3,8 @@ import 'verificationCode.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'pantallaPrueba.dart';
+import 'pantallaInicioColaborador.dart';
+import 'package:app_stressless/main.dart';
 
 class LoginColaboradorPage extends StatefulWidget {
   const LoginColaboradorPage({super.key});
@@ -106,7 +108,7 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                     }
 
                     final response = await http.post(
-                      Uri.parse('http://192.168.1.102:8000/login'),
+                      Uri.parse('http://192.168.1.40:8000/login'),
                       headers: {'Content-Type': 'application/json'},
                       body: jsonEncode({
                         'correo': email,
@@ -119,20 +121,23 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                       final data = jsonDecode(response.body);
                       final token = data['token'];
                       final idColaborador = data['id'];
-                      print("✅ Token recibido: $token");
+                      final nombre = data['nombre']; // <-- NUEVO: nombre desde backend
 
+                      print("✅ Token recibido: $token");
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Sesión iniciada con éxito")),
                       );
 
-                      // TODO: redirige a pantalla principal del colaborador
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => PantallaInicioPrueba(idColaborador: idColaborador),
+                        MaterialPageRoute(
+                          builder: (context) => pantallaInicioColaborador(
+                            idColaborador: idColaborador,
+                            nombreColaborador: nombre,
+                          ),
                         ),
                       );
-
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Credenciales inválidas: ${response.statusCode}")),
@@ -140,6 +145,7 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                       print("❌ Error login: ${response.body}");
                     }
                   },
+
 
                   child: const Text('Iniciar sesión'),
                 ),
@@ -169,8 +175,13 @@ class _LoginColaboradorPageState extends State<LoginColaboradorPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const StressLessApp()),
+                          (route) => false,
+                    );
                   },
+
                   child: const Text('Volver'),
                 ),
               ],

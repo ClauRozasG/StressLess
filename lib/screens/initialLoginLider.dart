@@ -1,5 +1,9 @@
 import 'package:app_stressless/screens/registroLider.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'pantallaInicioLider.dart';
+import 'package:app_stressless/main.dart';
 
 
 class initialLoginLider extends StatefulWidget {
@@ -92,9 +96,46 @@ class _initialLoginLiderState extends State<initialLoginLider> {
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
-                  onPressed: () {
-                    // Lógica de login
+                  onPressed: () async {
+                    final email = _emailController.text;
+                    final password = _passwordController.text;
+
+                    if (email.isEmpty || password.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Completa todos los campos")),
+                      );
+                      return;
+                    }
+
+                    final url = Uri.parse("http://192.168.1.40:8000/login");
+
+                    final response = await http.post(
+                      url,
+                      headers: {"Content-Type": "application/json"},
+                      body: jsonEncode({
+                        "correo": email,
+                        "contrasenia": password,
+                        "rol": "LIDER"
+                      }),
+                    );
+
+                    if (response.statusCode == 200) {
+                      final data = jsonDecode(response.body);
+                      final idLider = data['id'];
+
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PantallaInicioLider(idLider: idLider),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Credenciales incorrectas")),
+                      );
+                    }
                   },
+
                   child: const Text('Iniciar sesión'),
                 ),
                 const SizedBox(height: 20),
@@ -124,8 +165,13 @@ class _initialLoginLiderState extends State<initialLoginLider> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const StressLessApp()),
+                          (route) => false,
+                    );
                   },
+
                   child: const Text('Volver'),
                 ),
               ],

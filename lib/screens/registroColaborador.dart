@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'pantallaInicioColaborador.dart';
 import 'modeloPredict.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'pantallaPrueba.dart';
 
 class registroColaborador extends StatefulWidget {
   final String nombre;
   final String email;
+  final String codigo;
+  final String correoLider;
 
   const registroColaborador({
     super.key,
     required this.nombre,
     required this.email,
+    required this.codigo,
+    required this.correoLider,
   });
 
   @override
@@ -23,19 +30,44 @@ class _registroColaboradorState extends State<registroColaborador> {
 
   String _mensaje = '';
 
-  void _registrar() {
+  void _registrar() async {
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() => _mensaje = 'Las contraseñas no coinciden');
       return;
     }
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PruebaEstresPage(),
-      ),
+    final url = Uri.parse("http://192.168.1.40:8000/register-colaborador");
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "nombre": widget.nombre,
+        "correo": widget.email,
+        "contrasenia": _passwordController.text,
+        "codigo": widget.codigo,
+      }),
     );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() => _mensaje = 'Registro exitoso');
+      final idColaborador = data['id'];
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => pantallaInicioColaborador(
+            idColaborador: idColaborador,
+            nombreColaborador: widget.nombre,
+          ),
+        ),
+      );
+    } else {
+      setState(() => _mensaje = 'Error al registrar: ${response.body}');
+    }
   }
+
 
 
   @override
@@ -59,8 +91,8 @@ class _registroColaboradorState extends State<registroColaborador> {
                 _buildReadOnlyField(widget.nombre),
 
                 const SizedBox(height: 15),
-                _buildLabel('Nombre Líder', Icons.emoji_people),
-                _buildEditableField(_liderController, 'XXXXXX XXXXX XXXXX'),
+                _buildLabel('Correo del Líder', Icons.emoji_people),
+                _buildReadOnlyField(widget.correoLider),
 
                 const SizedBox(height: 15),
                 _buildLabel('E-mail', Icons.email),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'pantallaDatosColaborador.dart';
 import 'pantallaCambiarContrasena.dart';
+import 'package:app_stressless/constants.dart';
 
 class PantallaConfiguracionColaborador extends StatelessWidget {
   final String nombre;
@@ -12,80 +13,119 @@ class PantallaConfiguracionColaborador extends StatelessWidget {
     required this.idColaborador,
   });
 
+  Color get _bg => const Color(0xFFF5F5DC);       // beige
+  Color get _primary => const Color(0xFF8D6E63);  // café suave
+  Color get _textDark => const Color(0xFF4E342E); // café oscuro
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC),
+      backgroundColor: _bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F5DC),
+        backgroundColor: _bg,
         elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
+        iconTheme: IconThemeData(color: _textDark),
+        title: Text(
+          "Configuración",
+          style: TextStyle(color: _textDark, fontWeight: FontWeight.w800),
         ),
       ),
       drawer: Drawer(
-        backgroundColor: const Color(0xFFF5F5DC),
+        backgroundColor: _bg,
         child: ListView(
           padding: EdgeInsets.zero,
           children: const [
-            DrawerHeader(child: SizedBox()),
+            DrawerHeader(child: SizedBox()), // futuro menú
           ],
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min, // centra verticalmente
-          children: [
-            const CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.blueGrey,
-              child: Icon(Icons.person, color: Colors.white, size: 50),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              nombre,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 30),
-            _boton(context, 'Datos', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PantallaDatosColaborador(idColaborador: idColaborador),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              children: [
+                // Avatar + nombre
+                CircleAvatar(
+                  radius: 45,
+                  backgroundColor: _primary.withOpacity(.2),
+                  child: Icon(Icons.person, color: _primary, size: 50),
                 ),
-              );
-            }),
-            _boton(context, 'Cambiar contraseña', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PantallaCambiarContrasena(idColaborador: idColaborador),
+                const SizedBox(height: 14),
+                Text(
+                  nombre,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: _textDark,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              );
-            }),
-            const SizedBox(height: 20),
-            _boton(context, 'Atrás', () => Navigator.pop(context)),
-          ],
+
+                const SizedBox(height: 28),
+
+                // Opciones
+                _opcion(
+                  context,
+                  icon: Icons.info_outline,
+                  label: "Datos",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PantallaDatosColaborador(idColaborador: idColaborador),
+                      ),
+                    );
+                  },
+                ),
+                _opcion(
+                  context,
+                  icon: Icons.lock_outline,
+                  label: "Cambiar contraseña",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PantallaCambiarContrasena(idColaborador: idColaborador),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                // Atrás
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text("Atrás"),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.brown.shade300),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _boton(BuildContext context, String texto, VoidCallback onPressed) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.brown,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-        ),
-        child: Text(texto),
+  Widget _opcion(BuildContext context, {required IconData icon, required String label, required VoidCallback onTap}) {
+    return Card(
+      elevation: 1,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: ListTile(
+        leading: Icon(icon, color: _primary),
+        title: Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: _textDark)),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+        onTap: onTap,
       ),
     );
   }

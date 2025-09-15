@@ -1,15 +1,14 @@
-import 'package:flutter/material.dart';
-import 'pantallaInicioColaborador.dart';
-import 'modeloPredict.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'pantallaPrueba.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:app_stressless/constants.dart';
+import 'pantallaInicioColaborador.dart';
 
 class registroColaborador extends StatefulWidget {
   final String nombre;
   final String email;
-  final String codigo;
-  final String correoLider;
+  final String codigo;       // OTP
+  final String correoLider;  // correo del líder
 
   const registroColaborador({
     super.key,
@@ -24,164 +23,238 @@ class registroColaborador extends StatefulWidget {
 }
 
 class _registroColaboradorState extends State<registroColaborador> {
-  final TextEditingController _liderController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final _nombreCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _pass2Ctrl = TextEditingController();
 
-  String _mensaje = '';
+  bool _loading = false;
 
-  void _registrar() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() => _mensaje = 'Las contraseñas no coinciden');
-      return;
-    }
-
-    final url = Uri.parse("http://192.168.1.40:8000/register-colaborador");
-
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "nombre": widget.nombre,
-        "correo": widget.email,
-        "contrasenia": _passwordController.text,
-        "codigo": widget.codigo,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      setState(() => _mensaje = 'Registro exitoso');
-      final idColaborador = data['id'];
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => pantallaInicioColaborador(
-            idColaborador: idColaborador,
-            nombreColaborador: widget.nombre,
-          ),
-        ),
-      );
-    } else {
-      setState(() => _mensaje = 'Error al registrar: ${response.body}');
-    }
+  @override
+  void initState() {
+    super.initState();
+    _nombreCtrl.text = widget.nombre;
+    _emailCtrl.text = widget.email;
   }
 
+  @override
+  void dispose() {
+    _nombreCtrl.dispose();
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
+    _pass2Ctrl.dispose();
+    super.dispose();
+  }
 
+  Future<void> _registrarYEntrar() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+
+    try {
+      final body = {
+        "nombre": _nombreCtrl.text.trim(),
+        "correo": _emailCtrl.text.trim().toLowerCase(),
+        "contrasenia": _passCtrl.text,
+        "codigo": widget.codigo,
+      };
+
+      final uri = Uri.parse("${ApiConfig.baseUrl}/register-colaborador");;
+      final resp = await http.post(
+        uri,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      debugPrint("🟡 REGISTRO status: ${resp.statusCode}");
+      debugPrint("🟡 REGISTRO body: ${resp.body}");
+
+      if (!mounted) return;
+
+      if (resp.statusCode == 200 || resp.statusCode == 201) {
+        final data = jsonDecode(resp.body);
+
+        // ---- Normaliza ID ----
+        int? _asInt(dynamic v) {
+          if (v == null) return null;
+          if (v is num) return v.toInt();
+          if (v is String) return int.tryParse(v);
+          return null;
+        }
+
+        int? idColaborador =
+            _asInt(data["id_colaborador"]) ??
+                _asInt(data["colaborador"]?["id"]) ??
+                _asInt(data["id"]) ??
+                _asInt(data["data"]?["id"]) ??
+                _asInt(data["user"]?["id"]) ??
+                _asInt(data["usuario"]?["id"]);
+
+        final String nombreColaborador =
+        (data["nombre"] ??
+            data["colaborador"]?["nombre"] ??
+            data["user"]?["nombre"] ??
+            data["usuario"]?["nombre"] ??
+            _nombreCtrl.text)
+            .toString();
+
+        if (idColaborador == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Error: no se recibió ID. Respuesta: ${resp.body}"),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.red.shade700,
+              duration: const Duration(seconds: 5),
+            ),
+          );
+          setState(() => _loading = false);
+          return;
+        }
+
+        // Navegación limpia
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) => pantallaInicioColaborador(
+              idColaborador: idColaborador!,
+              nombreColaborador: nombreColaborador,
+            ),
+          ),
+              (route) => false,
+        );
+      } else {
+        String msg = "No se pudo registrar (${resp.statusCode})";
+        try {
+          final err = jsonDecode(resp.body);
+          if (err is Map && err["detail"] != null) msg = err["detail"].toString();
+          if (err is Map && err["message"] != null) msg = err["message"].toString();
+        } catch (_) {}
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+        );
+      }
+    } catch (e, st) {
+      debugPrint("🔴 REGISTRO EXCEPTION: $e\n$st");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de red: $e"), behavior: SnackBarBehavior.floating),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Color _primary = const Color(0xFF8D6E63);
+    final Color _bg = const Color(0xFFF5F5DC);
+    final Color _textDark = const Color(0xFF4E342E);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5DC), // Beige
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Bienvenido colaborador',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 30),
+      backgroundColor: _bg,
+      appBar: AppBar(
+        backgroundColor: _bg,
+        elevation: 0,
+        iconTheme: IconThemeData(color: _textDark),
+        title: Text("Bienvenido colaborador",
+            style: TextStyle(color: _textDark, fontWeight: FontWeight.w800)),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Completa tu registro para empezar",
+                style: TextStyle(color: Colors.brown.shade700)),
 
-                _buildLabel('Nombre Completo', Icons.person),
-                _buildReadOnlyField(widget.nombre),
-
-                const SizedBox(height: 15),
-                _buildLabel('Correo del Líder', Icons.emoji_people),
-                _buildReadOnlyField(widget.correoLider),
-
-                const SizedBox(height: 15),
-                _buildLabel('E-mail', Icons.email),
-                _buildReadOnlyField(widget.email),
-
-                const SizedBox(height: 15),
-                _buildLabel('Crea una contraseña', Icons.lock),
-                _buildPasswordField(_passwordController),
-
-                const SizedBox(height: 15),
-                _buildLabel('Reconfirma la contraseña', Icons.lock),
-                _buildPasswordField(_confirmPasswordController),
-
-                const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _registrar,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.brown[400],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 30),
-                      child: Text('Aceptar'),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Center(
-                  child: Text(
-                    _mensaje,
-                    style: TextStyle(
-                      color: _mensaje == 'Registro exitoso' ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              ],
+            const SizedBox(height: 20),
+            TextField(
+              controller: _nombreCtrl,
+              decoration: InputDecoration(
+                labelText: "Nombre completo",
+                prefixIcon: const Icon(Icons.person_outline),
+                filled: true,
+                fillColor: Colors.white,
+                border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
             ),
-          ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: TextEditingController(text: widget.correoLider),
+              enabled: false,
+              decoration: InputDecoration(
+                labelText: "Correo del líder",
+                prefixIcon: const Icon(Icons.supervisor_account_outlined),
+                filled: true,
+                fillColor: Colors.grey.shade200,
+                border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _emailCtrl,
+              enabled: false,
+              decoration: InputDecoration(
+                labelText: "E-mail",
+                prefixIcon: const Icon(Icons.email_outlined),
+                filled: true,
+                fillColor: Colors.grey.shade200,
+                border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _passCtrl,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: "Crea una contraseña",
+                prefixIcon: const Icon(Icons.lock_outline),
+                filled: true,
+                fillColor: Colors.white,
+                border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: _pass2Ctrl,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: "Reconfirma la contraseña",
+                prefixIcon: const Icon(Icons.lock_outline),
+                filled: true,
+                fillColor: Colors.white,
+                border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _registrarYEntrar,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primary,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: _loading
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                )
+                    : const Text("Aceptar",
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 6),
-        Text(text, style: const TextStyle(fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-
-  Widget _buildReadOnlyField(String value) {
-    return TextField(
-      readOnly: true,
-      controller: TextEditingController(text: value),
-      decoration: const InputDecoration(
-        fillColor: Colors.grey,
-        filled: true,
-        border: OutlineInputBorder(),
-      ),
-    );
-  }
-
-  Widget _buildEditableField(TextEditingController controller, String hint) {
-    return TextField(
-      controller: controller,
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: Colors.white,
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField(TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      obscureText: true,
-      decoration: const InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(),
       ),
     );
   }

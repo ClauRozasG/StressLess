@@ -1,103 +1,6 @@
-/*import 'dart:io';
-import 'package:flutter_sound/flutter_sound.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-void main() => runApp(MyApp());
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('StressLess')),
-        body: RecorderWidget(),
-      ),
-    );
-  }
-}
-
-class RecorderWidget extends StatefulWidget {
-  @override
-  _RecorderWidgetState createState() => _RecorderWidgetState();
-}
-
-class _RecorderWidgetState extends State<RecorderWidget> {
-  final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
-  bool _isRecording = false;
-  String? _filePath;
-  String? _resultado;
-
-  @override
-  void initState() {
-    super.initState();
-    _init();
-  }
-
-  Future<void> _init() async {
-    await Permission.microphone.request();
-    await Permission.storage.request();
-    await _recorder.openRecorder();
-  }
-
-  Future<void> _startRecording() async {
-    final tempDir = await getTemporaryDirectory();
-    _filePath = '${tempDir.path}/audio.wav';
-    await _recorder.startRecorder(toFile: _filePath, codec: Codec.pcm16WAV);
-    setState(() => _isRecording = true);
-  }
-
-  Future<void> _stopRecording() async {
-    await _recorder.stopRecorder();
-    setState(() => _isRecording = false);
-    if (_filePath != null) {
-      await _enviarAudio(File(_filePath!));
-    }
-  }
-
-  Future<void> _enviarAudio(File file) async {
-    final uri = Uri.parse('http://10.0.2.2:8000/analizar-voz'); 
-    final request = http.MultipartRequest('POST', uri)
-      ..files.add(await http.MultipartFile.fromPath('file', file.path));
-
-    final response = await request.send();
-    final respStr = await response.stream.bytesToString();
-
-    setState(() => _resultado = respStr);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: _isRecording ? _stopRecording : _startRecording,
-            child: Text(_isRecording ? 'Detener grabación' : 'Grabar voz'),
-          ),
-          SizedBox(height: 20),
-          if (_resultado != null) Text('Resultado: $_resultado')
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _recorder.closeRecorder();
-    super.dispose();
-  }
-}*/
-
 import 'package:app_stressless/screens/initialLoginLider.dart';
-import 'package:flutter/material.dart';
-
 import 'screens/loginColab.dart';
-//import 'screens/initialLoginLider.dart';
 
 void main() {
   runApp(const StressLessApp());
@@ -112,7 +15,8 @@ class StressLessApp extends StatelessWidget {
       title: 'StressLess',
       theme: ThemeData(
         fontFamily: 'Roboto',
-        scaffoldBackgroundColor: const Color(0xFFF5F5DC), // Beige background
+        scaffoldBackgroundColor: const Color(0xFFF5F5DC), // Beige
+        useMaterial3: false,
       ),
       home: const LoginInicio(),
       debugShowCheckedModeBanner: false,
@@ -123,61 +27,103 @@ class StressLessApp extends StatelessWidget {
 class LoginInicio extends StatelessWidget {
   const LoginInicio({super.key});
 
+  Color get _primary => const Color(0xFF8D6E63); // café suave
+  Color get _textDark => const Color(0xFF4E342E); // café texto
+  Color get _muted => const Color(0xFF6D4C41); // subtítulo
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.mic, size: 60, color: Colors.brown),
-                const SizedBox(height: 24),
-                const Text(
-                  '¡Bienvenido!',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF3E235C), // Morado oscuro
-                  ),
-                ),
-                const SizedBox(height: 40),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const initialLoginLider()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C3B2A), // Marrón
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  child: const Text('Iniciar sesión como líder'),
-                ),
+                // 🔝 Header centrado
+                const Icon(Icons.mic, size: 72, color: Colors.teal),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginColaboradorPage()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C3B2A),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
+                Text(
+                  '¡Bienvenido!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: _textDark,
                   ),
-                  child: const Text('Iniciar sesión como colaborador'),
-
                 ),
+                const SizedBox(height: 6),
+                Text(
+                  'Elige cómo quieres ingresar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: _muted,
+                    height: 1.3,
+                  ),
+                ),
+
+                const SizedBox(height: 28),
+
+                // 👤 Botón Líder
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.verified_user),
+                    label: const Text(
+                      'Iniciar sesión como líder',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 3,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const initialLoginLider()),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // 👩‍💼 Botón Colaborador (mismo estilo que el de líder)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.people_alt_outlined),
+                    label: const Text(
+                      'Iniciar sesión como colaborador',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 3,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LoginColaboradorPage()),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // 🌿 Nota
+
               ],
             ),
           ),
@@ -186,4 +132,3 @@ class LoginInicio extends StatelessWidget {
     );
   }
 }
-
